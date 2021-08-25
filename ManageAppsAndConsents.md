@@ -1,4 +1,4 @@
-# Manage App registrations and consents withi Azure Adtive directory
+# Manage App registrations and consents within Azure Active Directory
 This document provides overview and direct links to the documentation parts describing each atomic operation. Because this document focuses on automation, meaning the use of service princal as the actor, all referenced required permissions are `Application` permissions on Microsoft Graph.
 
 Before you begin, it is really important to understand the concept of [application and service principal objects](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals) in Azure AD. Please take your time to read that document first, before moving forward.
