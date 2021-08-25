@@ -89,7 +89,7 @@ The meaning of some of the properties of the JSON paylod:
 
  ## Create a corresponding service principal object
 
- After we have create the application object, a service principal object must be created. Do not forget, that all actual grants (consent, etc.) are applied on the service principal object.
+ After we have created the application object, a service principal object must be created. Do not forget, that all actual authorization grants (consent, etc.) are applied on the service principal object.
 
  We use the [Create service principal](https://docs.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-1.0&tabs=http) operation. 
  
