@@ -1,4 +1,4 @@
-> **Disclaimer** This information is proveded `as is` with best effort to cover details as of August 2021. This is, in now way, an official document or statement of any vendor. The author / authors disclaim liability for any damages that arise from acting upon the information provided in this document. 
+> **Disclaimer** This information is proveded `as is` with best effort to cover details as of August 2021. This is, in no way, an official document or statement of any vendor. The author / authors disclaim liability for any damages that arise from acting upon the information provided in this document. 
 
 # Use KeyCloak as SAML 2.0 Identity Provider for Single Sign-On with Azure AD
 
@@ -195,7 +195,7 @@ Once you enter basic required information for the new client it is time to fully
    ```Powershell
      Get-MsolDomain
    ```
-  4. Execute the following PowerShell command to set the desired domain to federated authentiction:
+   4. Execute the following PowerShell command to set the desired domain to federated authentiction:
    ```PowerShell
       Set-MsolDomainAuthentication `
       -Authentication Federated `
