@@ -189,13 +189,13 @@ Once you enter basic required information for the new client it is time to fully
    ```PowerShell
      Connect-MsolService
    ```
+  When prompted enter credentials of `Global Adminsitrator` account. Only Global Administrator can modify domain federation settings.
 
-    When prompted enter credentials of `Global Adminsitrator` account. Only Global Administrator can modify domain federation settings.
-   3. Execute the following command to get overview of the domains and make sure you are working with the Azure AD Tenant you intent to:
+  3. Execute the following command to get overview of the domains and make sure you are working with the Azure AD Tenant you intent to:
    ```Powershell
      Get-MsolDomain
    ```
-   4. Execute the following PowerShell command to set the desired domain to federated authentiction:
+  4. Execute the following PowerShell command to set the desired domain to federated authentiction:
    ```PowerShell
       Set-MsolDomainAuthentication `
       -Authentication Federated `
