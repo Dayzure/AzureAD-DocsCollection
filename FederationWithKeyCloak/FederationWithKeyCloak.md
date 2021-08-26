@@ -176,7 +176,7 @@ Once you enter basic required information for the new client it is time to fully
 
    These are the three mappers that are important and ncessesary to configure federation with Azure AD.
 
-   ## Configure Azure AD for federated sign-in with KeyCloak
+## Configure Azure AD for federated sign-in with KeyCloak
 
    For this step you will need the [MSOnline PowerShell Module](https://bit.ly/as-kc-fed-006) and the KeyCloak's SAML federation metadata.
 
@@ -185,16 +185,18 @@ Once you enter basic required information for the new client it is time to fully
     * `Location` attribute of the `SingleSignOnService` element that has `HTTP-POST` binding
     * The value of the `<ds:X509Certificate>` element
    2. Start a new PowerShell session on your computer and execute the following command to connect to your Azure AD instance:
-    ```PowerShell
-      Connect-MsolService
-    ```
+
+   ```PowerShell
+     Connect-MsolService
+   ```
+
     When prompted enter credentials of `Global Adminsitrator` account. Only Global Administrator can modify domain federation settings.
    3. Execute the following command to get overview of the domains and make sure you are working with the Azure AD Tenant you intent to:
-    ```Powershell
-      Get-MsolDomain
-    ```
+   ```Powershell
+     Get-MsolDomain
+   ```
    4. Execute the following PowerShell command to set the desired domain to federated authentiction:
-    ```PowerShell
+   ```PowerShell
       Set-MsolDomainAuthentication `
       -Authentication Federated `
       -ActiveLogOnUri <the value of SingleSignOnService you noted from federation metadata> `
@@ -207,15 +209,17 @@ Once you enter basic required information for the new client it is time to fully
       -PassiveLogOnUri <the value of SingleSignOnService you noted from federation metadata> `
       -SigningCertificate <the value of the ds:X509Certificate you noted from federation metadata> `
       -PreferredAuthenticationProtocol SAMLP 
-    ```
+   ```
 
-    ## Validate your configuration settings
+  ## Validate your configuration settings
 
-    After you have successfully configured all parties, it is time to test your configuration.
+  After you have successfully configured all parties, it is time to test your configuration.
 
-    1. Navigate to <https://portal.azure.com/{domain.name.that.you.configured.for.authentication}>
-    2. Enter a valid (synchronized) UPN value. At this point your browser will be redirected to KeyCloak with SAML AuthNRequest that looks like this one:
-    ```xml
+  1. Navigate to <https://portal.azure.com/{domain.name.that.you.configured.for.authentication}>
+  
+  2. Enter a valid (synchronized) UPN value. At this point your browser will be redirected to KeyCloak with SAML AuthNRequest that looks like this one:
+  
+  ```xml
     <samlp:AuthnRequest ID="_92950444-c699-40b1-9c61-4aa825e0719c"
                     Version="2.0"
                     IssueInstant="2021-08-26T15:29:42.605Z"
@@ -224,10 +228,13 @@ Once you enter basic required information for the new client it is time to fully
       <Issuer xmlns="urn:oasis:names:tc:SAML:2.0:assertion">urn:federation:MicrosoftOnline</Issuer>
       <samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent" />
     </samlp:AuthnRequest>
-    ```
-    3. If everything is working smoothly you will see the KeyCloak sign-in page. If you arelady have existing session with the same realm, this screen will be automatically skipped.
-    4. KeyCloak will issue SAML Assertion (response) and redirect your browser back Azure AD. Assertion will look similar to this one:
-    ```xml
+  ```
+  
+  3. If everything is working smoothly you will see the KeyCloak sign-in page. If you arelady have existing session with the same realm, this screen will be automatically skipped.
+  
+  4. KeyCloak will issue SAML Assertion (response) and redirect your browser back Azure AD. Assertion will look similar to this one:
+  
+  ```xml
     <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
                 xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
                 Destination="https://login.microsoftonline.com/login.srf"
@@ -283,5 +290,5 @@ Once you enter basic required information for the new client it is time to fully
         </saml:AttributeStatement>
     </saml:Assertion>
 </samlp:Response>
-    ```
-    5. You will be signed-in into Azure Portal.
+ ```
+  5. You will be signed-in into Azure Portal.
