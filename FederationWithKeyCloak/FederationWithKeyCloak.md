@@ -1,39 +1,39 @@
-> **Disclaimer** This information is proveded `as is` with best effort to cover details as of August 2021. This is, in no way, an official document or statement of any vendor. The author / authors disclaim liability for any damages that arise from acting upon the information provided in this document. 
+> **Disclaimer:** This information is provided `as is` with best effort to cover details as of August 2021. This is, in no way, an official document or statement of any vendor. The author / authors disclaim liability for any damages that arise from acting upon the information provided in this document. 
 
 # Use KeyCloak as SAML 2.0 Identity Provider for Single Sign-On with Azure AD
 
-This document contains information on how to configure Azure AD in Azure Commercial Cloud (no Government, China or any other sovereign cloud) to use KeyCloak as SAML 2.0 compliant SP-Lite profile based as the preferred Security Token Service (STS) / identity provider. This scenario is usefull when KeyCloak is fully integrated in your environment and you are bound by compliance requirements to not use other federation service / security token service. The SAML 2.0 SP-Lite profile is based on the widely used Security Assertion Markup Language (SAML) federated identity standard to provide a sign-on and attribute exchange framework.
+This document contains information on how to configure Azure AD in Azure Commercial Cloud (not Government, China or any other sovereign cloud) to use KeyCloak as SAML 2.0 compliant SP-Lite profile based as the preferred Security Token Service (STS) / identity provider. This scenario is usefull when KeyCloak is fully integrated in your environment and you are bound by compliance requirements to not use other federation services / security token services. The SAML 2.0 SP-Lite profile is based on the widely used Security Assertion Markup Language (SAML) federated identity standard to provide a sign-on and attribute exchange framework.
 
 > **NOTE:** Microsoft is no longer testing 3rd party Identity Providers for compatibility. For a list of 3rd party IdPs that have been tested for use with Azure AD see the [Azure AD federation compatibility list](https://bit.ly/as-kc-008).
 
-For more information and supported SAML2 modalities, requirements, pelase refer to the official documentation [Use a SAML 2.0 Identity Provider (IdP) for Single Sign On](https://bit.ly/as-kc-fed-007)
+For more information and supported SAML2 modalities/requirements, pelase refer to the official documentation [Use a SAML 2.0 Identity Provider (IdP) for Single Sign On](https://bit.ly/as-kc-fed-007)
 
 After you finish with steps in this documentaion, you will have a working setup represented by the following diagram:
 
 ![Azure AD Connect with Federation](./media/azuread-sync-with-federation.png)
 
 ## Prepare your environment
-Signing-in users is, of course, important step. However, before, we can sign-in any user over KeyCloak, our Azure AD tenant must be _informed_ that there will be a user, whose authentication authority is somewhere else. In other words, a user identity _must_ exist within Azure AD. Today, the only supported way to get on-premises identities into Azure AD is to use [Azure AD Connect](https://bit.ly/as-kc-fed-001). Please familiarize yourself with [Azure AD Connect](https://bit.ly/as-kc-fed-001) before you move forward. 
+Of course signing-in users is an important step. However, before we can sign-in any user over KeyCloak, our Azure AD tenant must be _informed_ that there will be a user, whose authentication authority is somewhere else. In other words, a user identity _must_ exist within Azure AD. Today, the only supported way to get on-premises identities into Azure AD is to use [Azure AD Connect](https://bit.ly/as-kc-fed-001). Please familiarize yourself with [Azure AD Connect](https://bit.ly/as-kc-fed-001) before you proceed. 
 
-> **Note** In order to install Azure AD Connect and synchronize user identities, you must own a pbulicly routable domain name and verify it with your Azure AD. This domain will later be used of upn suffix (or e-mail domain) for your users to sign-in. You can read more about the procedure and requirements on the official documentation: [Add and verify custom domain](https://bit.ly/as-kc-fed-004).
+> **Note:** In order to install Azure AD Connect and synchronize user identities, you must own a publicly routable domain name and verify it with your Azure AD. This domain will later be used as upn suffix (or e-mail domain) for your users to sign-in. You can read more about the procedure and requirements in the official documentation: [Add and verify custom domain](https://bit.ly/as-kc-fed-004).
 
-> **Note** The most important aspect of Identity synchronization, is the choise of the so called `source anchor`. The attribute that uniquely identifies a user object in your on-premises environment. This attribute is sealed on the special user property `onPremisesImmutableId` of the cloud user object. This property (`onPremisesImmutableId`) is a `write-once-read-many` type of property. This means, you can set the value of that property when the user object is created, but you cannot change this value any more. Please take your time to read through the [Azure AD Connect: Design Concepts](https://bit.ly/as-kc-fed-002) document to understand better.
+> **Note:** The most important aspect of Identity synchronization is the choise of the so called `source anchor`. This is the attribute that uniquely identifies a user object in your on-premises environment. This attribute is sealed on the special user property `onPremisesImmutableId` of the cloud user object. This property (`onPremisesImmutableId`) is a `write-once-read-many` type of property. This means, that you can set the value of that property when the user object is created, but you cannot change this value later on. Please take your time to read through the [Azure AD Connect: Design Concepts](https://bit.ly/as-kc-fed-002) document for better understanding.
 
-As you can read from the documentation, Azure AD Connect, by default, takes the user's `objectGUID` attribute from on-premises enviornment, and synchronizes that to `onPremisesImmutableId` attribute.
+As you can read from the documentation, Azure AD Connect by default takes the user's `objectGUID` attribute from on-premises enviornment and synchronizes that to the `onPremisesImmutableId` attribute.
 
 ### Install and configure Azure AD Connect
 The first step is to install and configure Azure AD Connect. You can read more about [Installing and configuring Azure AD Connect and Azure AD Connect health](https://bit.ly/as-kc-fed-003) following the official guidance.
-For this proof-of-concept setup, I use customized installation of Azure AD Connect by choosing the following options:
+For this proof-of-concept setup, I used a customized installation of Azure AD Connect by choosing the following options:
 
  1. Choose `Customize` ([image](./media/aadc-001.jpg)).
  2. Do not check any of the checkboxes and click on `Install` ([image](./media/aadc-002.jpg)).
  3. For `User sign-in` chose `Do not configure` ([image](./media/aadc-003.jpg)). Alternatively you can choose `Password hash sync`. The latter is usefull in case of issues with your federation infrastructure. You can easily switch from federated authentication to password hash sync (sign-in in cloud) type of authentication for your users. This helps to avoid loosing complete access to your cloud services in case of issues with federation infrastructure.
  4. Enter your `Global Administrator` credentials for Azure AD to proceed to next step ([image](./media/aadc-004.jpg))
- 5. To connect your on-premises Directory (Forest) you need to enter credentials. The screen contains description on the type of account you can use (Domain Administrator vs. Enterprise Administrator). For my setup, I use `Enterprise Administrator` account ([image](./media/aadc-005.jpg))).
- 6. Once you successfully authenticated for the chose forest, you can proceed to next step ([image](./media/aadc-006.jpg)).
- 7. Configure the `Azure AD sign-in`. There are couple of important informations here on this step ([image](./media/aadc-007.jpg)):
+ 5. To connect your on-premises Directory (Forest) you need to enter credentials. The screen contains a description of the account type you can use (Domain Administrator vs. Enterprise Administrator). For my setup, I used `Enterprise Administrator` account ([image](./media/aadc-005.jpg))).
+ 6. Once you successfully authenticated for the choosen forest, you can proceed to next step ([image](./media/aadc-006.jpg)).
+ 7. Configure the `Azure AD sign-in`. There is important information in regards to this step ([image](./media/aadc-007.jpg)):
   * All verified domain names will be listed here. The list does not neccessarily match your configured UPN suffixes. If this is the case, you may want to check the `Continue without matching all UPN suffixes to verified domain` checkbox. 
-  * `USER PRINCIPAL NAME` configuration. Here you must select what on-premises attribute will be used as a cloud sign-in name. Recommended configuration is to use the on-premises `userPrincipalName`. For this proof of concept I choose `userPrincipalName` You can read more about this important configuration on the [official documentation](https://bit.ly/as-kc-fed-005).
+  * `USER PRINCIPAL NAME` configuration. Here you must select which on-premises attribute will be used as a cloud sign-in name. Recommended configuration is to use the on-premises `userPrincipalName`. For this proof of concept I chose `userPrincipalName` You can read more about this important configuration on the [official documentation](https://bit.ly/as-kc-fed-005).
  8. Domain / OU Filtering. I chose to synchronize only single OU ([image](./media/aadc-008.jpg)).
  9. Leave all settings are are (`All users are represented only once` and `Let Azure manage source anchor`) ([image](./media/aadc-009.jpg)).
  10. Filtering. I chose to synchronize all users and devices. Remember that I only chose single OU on step `8`. This option here will synchronize all Users, Security Groups and devices from that OU into Azure AD ([image](./media/aadc-010.jpg)).
@@ -41,7 +41,7 @@ For this proof-of-concept setup, I use customized installation of Azure AD Conne
  12. Here I just leave all relevant apps as they are. No changes on this screen ([image](./media/aadc-012.jpg)).
  13. Here I just leave all relevant Azure attributes. No changes on this screen ([image](./media/aadc-013.jpg)).
  14. On the `Directory extensions` I chose `employeedId` and `employeeNumber` attributes to be also synchronized ([image](./media/aadc-014.jpg)).
- 15. Finally I choose `Start synchronization process when configuration completes` and click on `Install` ([image](./media/aadc-015.jpg)).
+ 15. Finally I chose `Start synchronization process when configuration completes` and click on `Install` ([image](./media/aadc-015.jpg)).
 
 Once Azure AD Connect is installed, wait a couple of minutes and verify that all users and groups from the chosen OU (`step (8)`) are synchronized.
 
@@ -58,11 +58,11 @@ In order for our setup to work, we need to insturct KeyCloak to authenticate the
  * `READ_ONLY` for `Import mode`
  * `ON` for `Import users`
  * `OFF` for `Sync registratins` (you do not really want to write to your LDAP directory user that registered themself in your KeyCloak)
-4. From the auto populated fields, I only change the `username LDAP attribute` to `sAMAccountName` ([image](./media/kc-003.jpg))
-5. Enter neccessary details to connect to your LDAP directory. If you configured `OU Filtering` in Azure AD Connect, like we did hier, make sure to also filter to that same OU ([image](./media/kc-002.jpg)).
+4. From the auto populated fields, I only changed the `username LDAP attribute` to `sAMAccountName` ([image](./media/kc-003.jpg))
+5. Enter neccessary details to connect to your LDAP directory. If you configured `OU Filtering` in Azure AD Connect, like we did here, make sure to also filter to that same OU ([image](./media/kc-002.jpg)).
 6. Enter LDAP connection details - server address, bind type and user credentials.
 
-Once you complete these settings and successfully test both connection and authentication data, you can save the settings and navigate to `Mappers`. Leave all default attributes as they are, but add a new one ([image](./media/kc-004.jpg)) with the following values:
+Once you have completed these settings and successfully tested both connection and authentication data, you can save the settings and navigate to `Mappers`. Leave all default attributes as they are, but add a new one ([image](./media/kc-004.jpg)) with the following values:
  * `Type` set to `user-attribute-ldap-mapper`
  * `User Model Attribute` set to `ImmutableID`
  * `LDAP Attribute` set to `ObjectGUID`
@@ -74,7 +74,7 @@ Once you complete these settings and successfully test both connection and authe
 
 Save the configuration and test it - try to sign-in to the configured realm with a user from your LDAP directory.
 
-> **NOTE** We need this mapper in order to provide the correct `ImmutableID` later to Azure AD. If you remember, Azure AD Connect was configured to write the user's `objectGUID` into the `onPremisesImmutableId` (source anchor) attribute. This is the attribute that makes the match between the synchronized user and the signed-in user.
+> **NOTE:** We need this mapper in order to provide the correct `ImmutableID` later to Azure AD. If you remember, Azure AD Connect was configured to write the user's `objectGUID` into the `onPremisesImmutableId` (source anchor) attribute. This is the attribute that does the match between the synchronized user and the signed-in user.
 
 ## Configure Azure AD as SAML 2.0 Service Provider (client) in KeyCloak
 
@@ -159,7 +159,7 @@ Once you enter basic required information for the new client it is time to fully
   It is important to remove all client scopes that are predifined for this client. Azure AD does not understands and ignores what KeyCalok could potentially sent in scopes.
 
   ### Configure `Mappers` for Azure AD Federation
-  The last and most important step, is to properly configure `Mappers` so that KeyCloak issues correct assertions in the SAML response. According to the documentation, there are only two important identifier that must be sent: `ImmutableID` and `UPN`. And these two must exactly match the values of a synchronized user identity. So let's start with the mappers:
+  The last and most important step, is to properly configure `Mappers` so that KeyCloak issues correct assertions in the SAML response. According to the documentation, there are only two important identifiers that must be sent: `ImmutableID` and `UPN`. These two must exactly match the values of a synchronized user identity. So let's start with the mappers:
 
   1. Click on `Create` and then choose `User Attribute Mapper for NameID`. Enter the following values ([image](./media/kc-009.jpg)):
    * For `Name` enter `ImmutableID-NameID`
@@ -176,7 +176,7 @@ Once you enter basic required information for the new client it is time to fully
    * `Friendly Name` leave blank
    * For `SAML Attribute Name` enter `http://schemas.xmlsoap.org/claims/UPN`
    * For `SAML Attribute NameFormat` choose `URI Reference`
-   > **NOTE** In this sample I am sending the User's Email property as `UPN` to match a synchronized user. It is important here that you choose the correct proeprty (or attribute) that would match the `UPN` for the synchronized user. This depends on how you configured `Azure AD Connect` in step (7) - `USER PRINCIPAL NAME CONFIGURATION`
+   > **NOTE:** In this sample I am sending the User's Email property as `UPN` to match a synchronized user. It is important here that you choose the correct proeprty (or attribute) that would match the `UPN` for the synchronized user. This depends on how you configured `Azure AD Connect` in step (7) - `USER PRINCIPAL NAME CONFIGURATION`
 
    These are the three mappers that are important and ncessesary to configure federation with Azure AD.
 
@@ -193,9 +193,9 @@ Once you enter basic required information for the new client it is time to fully
    ```PowerShell
      Connect-MsolService
    ```
-  When prompted enter credentials of `Global Adminsitrator` account. Only Global Administrator can modify domain federation settings.
+  When prompted, enter credentials for the `Global Adminsitrator` account. Only Global Administrator can modify domain federation settings.
 
-  3. Execute the following command to get overview of the domains and make sure you are working with the Azure AD Tenant you intent to:
+  3. Execute the following command to get overview of the domains and make sure you are working with the Azure AD Tenant you intend to do:
    ```Powershell
      Get-MsolDomain
    ```
