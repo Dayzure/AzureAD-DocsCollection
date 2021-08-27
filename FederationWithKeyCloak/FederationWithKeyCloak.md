@@ -8,6 +8,10 @@ This document contains information on how to configure Azure AD in Azure Commerc
 
 For more information and supported SAML2 modalities, requirements, pelase refer to the official documentation [Use a SAML 2.0 Identity Provider (IdP) for Single Sign On](https://bit.ly/as-kc-fed-007)
 
+After you finish with steps in this documentaion, you will have a working setup represented by the following diagram:
+
+![Azure AD Connect with Federation](./media/azuread-sync-with-federation.png)
+
 ## Prepare your environment
 Signing-in users is, of course, important step. However, before, we can sign-in any user over KeyCloak, our Azure AD tenant must be _informed_ that there will be a user, whose authentication authority is somewhere else. In other words, a user identity _must_ exist within Azure AD. Today, the only supported way to get on-premises identities into Azure AD is to use [Azure AD Connect](https://bit.ly/as-kc-fed-001). Please familiarize yourself with [Azure AD Connect](https://bit.ly/as-kc-fed-001) before you move forward. 
 
