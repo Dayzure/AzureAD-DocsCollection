@@ -8,7 +8,7 @@ Part of every single sign-on solution is, of course, user provisioning. Before y
 
 When using custom federation with SAML 2.0, there is always the question - `do I have to use Azure AD Connect?`. And the answer is - `YES`. Becaue this is the only way, supported by Microsoft, to synchronize users and groups to Azure AD.
 
-In this tutorial, we will learn what other _technical_ ways there are. 
+In this tutorial, we will learn what other _technical_ ways exist. 
 
 > **NOTE** This article describes a not supported way to synchronize user objects from external sources (like on-premises Active Directory) to Azure AD. Use at your own risk and build an understanding of your own!
 
