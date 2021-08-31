@@ -6,7 +6,7 @@
 
 Part of every single sign-on solution is, of course, user provisioning. Before you can do anything with Azure AD, there must be a user object defined. Today, the only Microsoft supported way to synchronize users into Azure AD (from on-premises directories) is by the use of [Azure AD Connect](https://bit.ly/as-kc-fed-001) or [Azure AD Connect Cloud Provisioning](https://bit.ly/as-kc-fed-009).
 
-When using custom federation with SAML 2.0, there is always the question - `do I have to use Azure AD Connect?`. And the answer is - `YES`. Becaue this is the only by Microsoft supported way to synchronize users and groups to Azure AD.
+When using custom federation with SAML 2.0, there is always the question - `do I have to use Azure AD Connect?`. And the answer is - `YES`. Because this is the only by Microsoft supported way to synchronize users and groups to Azure AD.
 
 In this tutorial, we will learn what other _technical_ ways exist. 
 
@@ -17,7 +17,7 @@ In this tutorial, we will learn what other _technical_ ways exist.
 ## Identifying source anchor
 
 The first and most important information about a synchronized user to identify the so called `source anchor` attribute. Please refer to [Azure AD Connect: Design Concepts](https://bit.ly/as-kc-fed-002), to understand in details about that concept. 
-With regards to our [Use KeyCloak as SAML 2.0 Identity Provider for Single Sign-On with Azure AD](./readme.md) sample, we used all default settings. When you configure Azure AD Connect Sync with default settings, it uses the user's `ObjectGUID` as source anchor. Let's not forget that the GUID type is actually a binary type, so it's value is written in the form of `base64` encoded characters of the `bytes` of the GUID. This is important to remember and to make a difference between the base64 encoded *string* representation of a GUID vs. base64 representation of the actual GUID bytes.
+With regards to our [Use KeyCloak as SAML 2.0 Identity Provider for Single Sign-On with Azure AD](./readme.md) sample, we used all default settings. When you configure Azure AD Connect Sync with default settings, it uses the user's `ObjectGUID` which is copied into the attribute `ms-DS-ConsistencyGuid` and then used as source anchor. Let's not forget that the GUID type is actually a binary type, so its value is written in the form of `base64` encoded characters of the `bytes` of the GUID. This is important to remember and to make a difference between the base64 encoded *string* representation of a GUID vs. base64 representation of the actual GUID bytes.
 
 > **NOTE:** Whatever value (user `attribute` in your source directory) you chose for the source anchor, you must make sure to use the same user attribute for the `ImmutableID` attribute of your `SAML` assertions. Take a good decision, as you cannot change this value once you stamp it on a user object.
 
@@ -26,7 +26,7 @@ Again, as referenced in [Azure AD Connect: Design Concepts](https://bit.ly/as-kc
  * This user property can be `written` only `once`. Either when you create the user object, or when you convert the user object from managed to federated.
  * This poroperty can be read multiple times
  * Once set, this property cannot be changed (it is read only in that sense)
- * If you decide to change this value, you must delete and recreate the user object
+ * If you decide to change this value, you must delete and purge the user from the directory. Afterwards you can re-create the user but be aware that the user lost all Azure AD related permissions. 
 
 ## Creating the user object with identified source anchor
 
@@ -52,7 +52,7 @@ Thus a single `REST` call to Microsoft Graph to create a user will look like thi
 ```bash
 curl --location --request POST 'https://graph.microsoft.com/v1.0/users' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer eyxxx' \
+--header 'Authorization: Bearer <Token>' \
 --data-raw '{
             "accountEnabled": true,
             "displayName": "Username",
@@ -75,7 +75,7 @@ Similarly you can also [Delete user via Microsoft Graph](https://bit.ly/as-kc-fe
 
 You can also use [Azure AD PowerShell for Microsoft Graph](https://bit.ly/as-kc-fed-014) to manage user objects. This is Windows based PowerShell.
 
-The command of most interes is [New-AzureADUser](https://bit.ly/as-kc-015) and this is the minimum set of properties (command parameters) you have to provide:
+The command of most interest is [New-AzureADUser](https://bit.ly/as-kc-015) and this is the minimum set of properties (command parameters) you have to provide:
 
 ```PowerShell
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
@@ -130,6 +130,6 @@ az ad user create \
 
 Technically, there are plenty of ways to manage user objects in Azure AD - from Azure AD PowerShell, over Microsoft Graph PowerShell SDK (using PowerShell Core) and Azure Cross Platform CLI to raw REST APIs. Once you choose the technology stack, make sure you dive deep in the relevant documentation.
 
-> **NOTE:** All referenced technologies (PowerShell, CLI, REST) **do** support `unattended` sign-in and you can script those and pack them im custom daemon process. The keyword to look for here is `service principal` authentication.
+> **NOTE:** All referenced technologies (PowerShell, CLI, REST) **do** support `unattended` sign-in where you can script those and run them in a custom daemon process. The keyword to look for is `service principal` authentication or even better `managed identitiy`.
 
 This summary represents anchors helping you to get started!
