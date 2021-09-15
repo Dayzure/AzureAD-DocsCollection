@@ -49,7 +49,7 @@ The "raw" method of creating user is, of course, diretly write it to the REST AP
 
 Thus a single `REST` call to Microsoft Graph to create a user will look like this:
 
-```bash
+```shell
 curl --location --request POST 'https://graph.microsoft.com/v1.0/users' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <Token>' \
@@ -118,13 +118,118 @@ You can also use Azure CLI to create user inside Azure AD. For more information 
 
 Once you have Azure CLI installed and you have signed-in, you can perform the following command directly from Bash shell on Linux to create a new user (ref.: [az ad user](https://bit.ly/as-az-ad-user)):
 
-```bash
+```shell
 az ad user create \
   --display-name "az created" \
   --password "rndP@55Wd!" \
   --user-principal-name "at.created@secninjas.eu" \
   --immutable-id "az.imm.id=="
 ```
+
+## Modify existing user object
+
+Modifying existing user object follows similar approach as by creating with couple of things to remember.
+
+> **IMPORTANT** Please read the *NOTE* section of the [Microsoft Graph REST API - update user](https://bit.ly/as-kc-fed-017)
+
+ * The following properties cannot be modified once the user is being created:
+  * `id` - that is the user object id
+  * `onPremisesImmutableId` - with the following remark: if this property is `NULL` for a created user object, it can be modified once, to set its value. But if there is a value in this property, it cannot be changed
+ * There are other limitations around modifying properties for administrator accounts. Please read the *NOTE* section of the [Microsoft Graph REST API - update user](https://bit.ly/as-kc-fed-017)
+
+ For all referenced methods of creating user object, here are the relevant *modify* operation references:
+
+  * [Microsoft Graph REST API](https://bit.ly/as-kc-fed-017)
+    ```shell
+    curl --location --request PATCH 'https://graph.microsoft.com/v1.0/users/<id>' \
+        --header 'Content-Type: application/json' \
+        --header 'Authorization: Bearer <Token>' \
+        --data-raw '{
+                      "businessPhones": [
+                        "+1 425 555 0109"
+                      ],
+                      "officeLocation": "18/2111"
+                    }'
+    ```
+    Using Microsoft Graph you can address a user object (`<id>` placeholder in the URI) by their `ObjectId` *or* their `userPrincipalName`
+
+  * [Azure AD PowerShell](https://bit.ly/as-kc-fed-018):
+    ```PowerShell
+    # first get the user we want to modify
+    $user = Get-AzureADUser -Filter "userPrincipalName eq 'cmk@staykov.net'"
+    # Then update user's display name
+    Set-AzureADUser -ObjectId $user.ObjectId -DisplayName "CMK User"
+    ```
+    Using Azure AD PowerShell and the `Set-AzureADUser` command, you must address the user object by their `ObjectId` property.
+
+  * [MS Graph PowerShell](https://bit.ly/as-msgraph-posh)
+    ```PowerShell
+    $user = Get-MgUser -UserId bot@staykov.net
+    Update-MgUser -UserId $user.Id -DisplayName "Bot User"
+    ```
+
+  * [Azure CLI](https://bit.ly/as-az-ad-user)
+    ```shell
+    anton@Azure:~$ az ad user list --filter "userPrincipalName eq 'cmk@staykov.net'" --query '[].{id:objectId,name:displayName}'
+    [
+      {
+        "id": "c1237a68-3ffc-4d37-ba3a-48eaaf513f15",
+        "name": "CMK User"
+      }
+    ]
+    anton@Azure:~$ az ad user update --id c1237a68-3ffc-4d37-ba3a-48eaaf513f15 --display-name "Customer Managed Key - User"
+    ```
+
+## Delete a user object from Azure AD
+
+> **NOTE** Deleting a user is a highly privileged operation in the directory. This operation requires higher privileges then all other operations (creating a user, modifying a user). Is you are using service principal, take a look the MS Graph documentation on the requried permissions for [DELETE Operation on User resource type](https://bit.ly/as-kc-fed-019). 
+
+Again, all of the listed methods for creating and modifying user object, can be used to delete a user.
+
+  * [Microsoft Graph REST API](https://bit.ly/as-kc-fed-019)
+    ```shell
+    curl --location --request DELETE 'https://graph.microsoft.com/v1.0/users/<id>' \
+        --header 'Authorization: Bearer <Token>' \
+    ```
+    Using Microsoft Graph you can address a user object (`<id>` placeholder in the URI) by their `ObjectId` *or* their `userPrincipalName`
+
+  * [Azure AD PowerShell](https://bit.ly/as-kc-fed-018):
+    ```PowerShell
+    # first create a user that we will delete
+    $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+    $PasswordProfile.Password = "SomeStrong0rR@ndomPa5w0rD!"
+    New-AzureADUser `
+      -DisplayName "To Be Deleted" `
+      -UserPrincipalName "tobedeleted@staykov.net" `
+      -AccountEnabled $true `
+      -PasswordProfile $PasswordProfile `
+      -MailNickName "tobedeleted"
+    
+    # from the output of the command above, take the ID (GUID type) property of the created object 
+    # Then delete the user
+    Remove-AzureADUser -ObjectId <id>
+    ```
+    Using Azure AD PowerShell and the `Remove-AzureADUser` command, you must address the user object by their `ObjectId` property.
+
+  * [MS Graph PowerShell](https://bit.ly/as-msgraph-posh)
+    ```PowerShell
+    # first get the user identifiers
+    Get-MgUser -Filter "userPrincipalName eq 'tobedeleted@idhero.de'"
+    Remove-MgUser -UserId <id>
+    ```
+    Using Microsoft Graph PowerShell and the `Remove-MgUser` command, you can address the user object by their `ObjectId` or `userPrincipalName` property.
+
+  * [Azure CLI](https://bit.ly/as-az-ad-user)
+    ```shell
+    anton@Azure:~$ az ad user list --filter "userPrincipalName eq 'tobedeleted@staykov.net'" --query '[].{id:objectId,name:displayName}'
+    [
+      {
+        "id": "c1237a68-3ffc-4d37-ba3a-48eaaf513f15",
+        "name": "To be deleted"
+      }
+    ]
+    anton@Azure:~$ az ad user delete --id c1237a68-3ffc-4d37-ba3a-48eaaf513f15 
+    ```
 
 # Conclusion
 
