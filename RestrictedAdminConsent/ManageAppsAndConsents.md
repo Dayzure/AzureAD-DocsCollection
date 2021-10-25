@@ -3,6 +3,8 @@ This document provides overview and direct links to the documentation parts desc
 
 Before you begin, it is really important to understand the concept of [application and service principal objects](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals) in Azure AD. Please take your time to read that document first, before moving forward.
 
+> **NOTE** This documentation describes explicitly how to create a custom role capable of granting admin consent to predefined set of permissions (both Microsoft Graph and any pre-existing app-registration permissions; both *delegated* and *application* permissions). This document does not explain *how to create app registration* itself. Please refer to [Manage App registrations within Azure Active Directory programatically](./ApplicationRegistration.md) document, to read more about how manage application registrations programatically.
+
 ## Authentication
 Microsoft Graph is a REST API that implements ODATA protocol and is secured by OAuth authorization policy. For more information on how to obtain valid bearer token for use with Microsoft Graph check [this document](https://docs.microsoft.com/en-us/graph/auth-v2-service).
 
